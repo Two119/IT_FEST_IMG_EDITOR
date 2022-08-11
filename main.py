@@ -79,8 +79,11 @@ class Button:
         self.screen.blit(self.textures[self.current], self.pos)
         self.rect = self.textures[self.current].get_rect(topleft=self.pos);
         
-win = pygame.display.set_mode((900, 900));
+win = pygame.display.set_mode((0, 0), pygame.FULLSCREEN);
+current_h_w = [win.get_width(), win.get_height()]
 imag = [];
+default_h_w = [1366, 768];
+win = pygame.display.set_mode((400*current_h_w[0]/default_h_w[0], 600*current_h_w[1]/default_h_w[1]));
 def test_function(ixy):
     print("clicked!");
 for img_ in range(9):
