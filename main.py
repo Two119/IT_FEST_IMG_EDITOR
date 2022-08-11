@@ -51,9 +51,9 @@ class GifProcesser(ImageEditor):
             newframe = pygame.Surface(new_dimensions);
             newframe.blit(gif.frames[i], [0, 0]);
             gif.frames[i] = newframe;
-    def swap_color_in_gif(gif, colors):
+    def swap_color_in_gif(gif, colors, threshold=(0, 0, 0, 0)):
         for frame in gif.frames:
-            pygame.transform.threshold(frame,frame,colors[0], (0,0,0,0), colors[1], 1, None, True);
+            pygame.transform.threshold(frame,frame,colors[0], threshold, colors[1], 1, None, True);
     def split_gif_to_frames(gif):
         return gif.frames;
     def save_images_to_gif(images, filename, optimiz):     
