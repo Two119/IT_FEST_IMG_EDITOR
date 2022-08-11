@@ -1,6 +1,13 @@
-import pygame, json, webbrowser, time, random
+import pygame, json, webbrowser, time, random, sys
 from tkinter import filedialog
 from PIL import Image, ImageDraw
+global current;
+class AppObj:
+    def __init__(self):
+        self.update_args = []
+    def update(self):
+        pass
+current = AppObj();
 class ImageEditor:
     def scale_image(img, factor=4):
         size = round(img.get_width() * factor), round(img.get_height() * factor);
@@ -8,20 +15,23 @@ class ImageEditor:
     def save_image(img, filename):
         pygame.image.save(img, filename);
         return;
-    def openFile():
+    def FileDialog():
         filepath = filedialog.askopenfilename(title="Open file")
         return filepath
-class Img:
-    def __init__(self, path):
-        self.filepath = path;
-class GIF:
+class STD_IMG(AppObj):
+    def __init__(self, img):
+        self.texture = img;
+    def update(self):
+        self.update_args[1].fill((0, 0, 0));
+        self.update_args[1].blit(self.texture, self.update_args[0]);
+class GIF(AppObj):
     def __init__(self, frames):
         self.frames = frames;
         self.num_frames = len(frames);
-    def play(self, position, screen):
+    def update(self):
         for frame in self.frames:
-            win.fill((0, 0, 0));
-            screen.blit(frame, position);
+            self.update_args[1].fill((0, 0, 0));
+            self.update_args[1].blit(frame, self.update_args[0]);
             pygame.display.update();
             time.sleep(0.04);
         return;
@@ -61,7 +71,7 @@ class GifProcesser(ImageEditor):
        for img__ in images:
             image.append(Image.open(img__));
        image[0].save(str(filename), save_all=True, append_images=image[1:], optimize=optimiz, duration=40, loop=0)
-class Button:
+class Button(AppObj):
     def __init__(self, position, textures, function, screen):
         self.textures = textures;
         self.onlick = function[0];
@@ -72,31 +82,62 @@ class Button:
         self.rect = self.textures[self.current].get_rect(topleft=self.pos);
     def update(self):
         self.current = 0;
-        if pygame.mouse.get_pressed()[0]:
-            if self.rect.collidepoint(pygame.mouse.get_pos()):
+        if self.rect.collidepoint(pygame.mouse.get_pos()):
+            if pygame.mouse.get_pressed()[0]:
                 self.onlick(self.args);
-                self.current = 1;
+            self.current = 1;
         self.screen.blit(self.textures[self.current], self.pos)
         self.rect = self.textures[self.current].get_rect(topleft=self.pos);
+class interface(AppObj):
+    def __init__(self):
+        global scale;
+        self.positions = [[10*scale["w"], 50*scale["h"]], [10*scale["w"], 100*scale["h"]]];
+        self.ButtonLoader();
+        self.button_dicts = {};
+    def update(self):
+        global current;
+        for ui in range(len(self.buttons)):
+            self.buttons[ui].update();
+        current.update();
+    def ButtonLoader(self):
         
+        def load_image(args):
+            to_load = ImageEditor.FileDialog();
+            if (to_load.find(".gif")):
+                global current;
+                current = GifProcesser.load_gif(to_load);
+                current.update_args = [[20, 50], win];
+            if not (to_load.find(".gif")):
+                
+                current = STD_IMG(pygame.image.load(to_load))
+                current.update_args = [[20, 50], win];
+        self.button_textures = [[pygame.image.load("Assets\\Images\\UI\\load.png")], [pygame.image.load("Assets\\Images\\UI\\exit.png")]];
+        for TexList in self.button_textures:
+            surf = pygame.Surface((TexList[0].get_width(), TexList[0].get_height()));
+            pygame.draw.rect(surf, [128, 128, 128], TexList[0].get_rect(topleft=(0, 0)));
+            surf.set_alpha(100);
+            TexList[0].set_colorkey((128, 255, 128));
+            new = (TexList[0].copy())
+            new.blit(surf, (0, 0));
+            new.set_colorkey((128, 206, 128));
+            TexList.append(new)
+            
+        self.buttons = [];
+        button_num = -1;
+        for tex in self.button_textures:
+            button_num += 1;
+            self.buttons.append(Button(self.positions[button_num], tex, [load_image, []], win));
 win = pygame.display.set_mode((0, 0), pygame.FULLSCREEN);
-current_h_w = [win.get_width(), win.get_height()]
-imag = [];
+current_h_w = [win.get_width(), win.get_height()];
 default_h_w = [1366, 768];
-win = pygame.display.set_mode((400*current_h_w[0]/default_h_w[0], 600*current_h_w[1]/default_h_w[1]));
-def test_function(ixy):
-    print("clicked!");
-for img_ in range(9):
-    imag.append("frame_"+str(img_)+"_delay-0.06s.png");
-
-GifProcesser.save_images_to_gif(imag, "output.gif", True);
-test_gif = GifProcesser.load_gif(ImageEditor.openFile());
-button_test = Button([270, 400], test_gif.frames, [test_function, 1], win)
-
+global scale;
+scale = {"w":current_h_w[0]/default_h_w[0], "h":current_h_w[1]/default_h_w[1]};
+win = pygame.display.set_mode((400*scale["w"], 600*scale["h"]))
+Interface = interface();
 while True:
     win.fill((0, 0, 0));
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            raise SystemExit;
-    button_test.update()
+            sys.exit();
+    Interface.update();
     pygame.display.update();
