@@ -7,7 +7,23 @@ class AppObj:
         self.update_args = []
     def update(self):
         pass
-current = AppObj();
+class CurrentImage(AppObj):
+    def __init__(self, surf, screenpos):
+        self.texture = surf;
+        self.update_args = screenpos;
+        self.gif = False;
+    def update(self):
+        if not self.gif:
+            self.update_args[1].blit(self.texture, self.update_args[0]);
+            pygame.display.update();
+        else:
+            for frame in self.texture:
+                self.update_args[1].fill((0, 0, 0));
+                self.update_args[1].blit(frame, self.update_args[0]);
+                pygame.display.update();
+                time.sleep(0.04);
+        return
+
 class ImageEditor:
     def scale_image(img, factor=4):
         size = round(img.get_width() * factor), round(img.get_height() * factor);
@@ -24,6 +40,8 @@ class STD_IMG(AppObj):
     def update(self):
         self.update_args[1].fill((0, 0, 0));
         self.update_args[1].blit(self.texture, self.update_args[0]);
+        pygame.display.update();
+        return
 class GIF(AppObj):
     def __init__(self, frames):
         self.frames = frames;
@@ -80,11 +98,20 @@ class Button(AppObj):
         self.screen = screen;
         self.current = 0;
         self.rect = self.textures[self.current].get_rect(topleft=self.pos);
+        self.click_delay = 0;
+        self.max_delay = 100;
+        self.delaying = False;
     def update(self):
         self.current = 0;
+        if self.delaying:
+            self.click_delay += 1;
+        if self.click_delay >= self.max_delay:
+            self.delaying = False;
         if self.rect.collidepoint(pygame.mouse.get_pos()):
             if pygame.mouse.get_pressed()[0]:
-                self.onlick(self.args);
+                if not self.delaying:
+                    self.onlick(self.args)
+                self.delaying = True;
             self.current = 1;
         self.screen.blit(self.textures[self.current], self.pos)
         self.rect = self.textures[self.current].get_rect(topleft=self.pos);
@@ -105,12 +132,11 @@ class interface(AppObj):
             to_load = ImageEditor.FileDialog();
             if (to_load.find(".gif")):
                 global current;
-                current = GifProcesser.load_gif(to_load);
-                current.update_args = [[20, 50], win];
+                current.texture = (GifProcesser.load_gif(to_load).frames);
+                current.gif = True;
             if not (to_load.find(".gif")):
-                
-                current = STD_IMG(pygame.image.load(to_load))
-                current.update_args = [[20, 50], win];
+                current.texture = (pygame.image.load(to_load));
+                current.gif = False;
         self.button_textures = [[pygame.image.load("Assets\\Images\\UI\\load.png")], [pygame.image.load("Assets\\Images\\UI\\exit.png")]];
         for TexList in self.button_textures:
             surf = pygame.Surface((TexList[0].get_width(), TexList[0].get_height()));
@@ -133,6 +159,7 @@ default_h_w = [1366, 768];
 global scale;
 scale = {"w":current_h_w[0]/default_h_w[0], "h":current_h_w[1]/default_h_w[1]};
 win = pygame.display.set_mode((400*scale["w"], 600*scale["h"]))
+current = CurrentImage(pygame.Surface((10, 10)), [[20, 50], win]);
 Interface = interface();
 while True:
     win.fill((0, 0, 0));
