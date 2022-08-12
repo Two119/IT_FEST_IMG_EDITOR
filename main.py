@@ -7,59 +7,42 @@ class AppObj:
         self.update_args = []
     def update(self):
         pass
-class OptionBox():
-
-    def __init__(self, x, y, w, h, color, highlight_color, font, option_list, selected = 0):
+class DropDownButton(AppObj):
+    def __init__(self, color, rec, menu, index):
         self.color = color
-        self.highlight_color = highlight_color
-        self.rect = pygame.Rect(x, y, w, h)
-        self.font = font
-        self.option_list = option_list
-        self.selected = selected
-        self.draw_menu = False
-        self.menu_active = False
-        self.active_option = -1
+        self.rect = rec
+        self.menu = menu
+        self.index = index
+    def update(self):
+        pygame.draw.rect(win, self.color, self.rect)
+        if self.rect.collidepoint(pygame.mouse.get_pos()):
+            pygame.draw.rect(win, [self.color[0]-50, self.color[1]-50, self.color[2]-50], self.rect)
+            if pygame.mouse.get_pressed()[0]:
+                self.menu.selected = self.index;
+class DropDown(AppObj):
+    def __init__(self, title, options, position, dimensions=[80, 40], color=[255, 255, 255]):
+        self.options = options
+        self.position = position
+        self.dimensions = dimensions
+        self.color = color
+        self.title = title
+        self.showing = True
+        self.selected = None;
+        self.rect = pygame.Rect(position[0], position[1], dimensions[0], dimensions[1])
+        self.buttons = []
+        for i in range(1, len(options)+1):
+            self.buttons.append(DropDownButton(self.color, pygame.Rect(self.rect.left, self.rect.top+40*i, self.rect.width, self.rect.height), self, i))
 
-    def draw(self, surf):
-        pygame.draw.rect(surf, self.highlight_color if self.menu_active else self.color, self.rect)
-        pygame.draw.rect(surf, (0, 0, 0), self.rect, 2)
-        msg = self.font.render(self.option_list[self.selected], 1, (0, 0, 0))
-        surf.blit(msg, msg.get_rect(center = self.rect.center))
-
-        if self.draw_menu:
-            for i, text in enumerate(self.option_list):
-                rect = self.rect.copy()
-                rect.y += (i+1) * self.rect.height
-                pygame.draw.rect(surf, self.highlight_color if i == self.active_option else self.color, rect)
-                msg = self.font.render(text, 1, (0, 0, 0))
-                surf.blit(msg, msg.get_rect(center = rect.center))
-            outer_rect = (self.rect.x, self.rect.y + self.rect.height, self.rect.width, self.rect.height * len(self.option_list))
-            pygame.draw.rect(surf, (0, 0, 0), outer_rect, 2)
-
-    def update(self, event_list):
-        mpos = pygame.mouse.get_pos()
-        self.menu_active = self.rect.collidepoint(mpos)
+    def update(self):
+        pygame.draw.rect(win, self.color, self.rect)
+        if self.showing:
+            for button in self.buttons:
+                button.update();
+        if self.rect.collidepoint(pygame.mouse.get_pos()):
+            pygame.draw.rect(win, [self.color[0]-50, self.color[1]-50, self.color[2]-50], self.rect)
+            if pygame.mouse.get_pressed()[0]:
+                self.showing = False
         
-        self.active_option = -1
-        for i in range(len(self.option_list)):
-            rect = self.rect.copy()
-            rect.y += (i+1) * self.rect.height
-            if rect.collidepoint(mpos):
-                self.active_option = i
-                break
-
-        if not self.menu_active and self.active_option == -1:
-            self.draw_menu = False
-
-        for event in event_list:
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if self.menu_active:
-                    self.draw_menu = not self.draw_menu
-                elif self.draw_menu and self.active_option >= 0:
-                    self.selected = self.active_option
-                    self.draw_menu = False
-                    return self.active_option
-        return -1
 class CurrentImage(AppObj):
     def __init__(self, surf, screenpos):
         self.texture = surf;
@@ -239,6 +222,7 @@ Interface = interface();
 delay = 0;
 frame = -1;
 form_init();
+drop = DropDown("hallo", [1, 2, 3], [150, 100])
 while True:
     #win.fill((0, 0, 0));
     for event in pygame.event.get():
@@ -253,5 +237,6 @@ while True:
         if frame >= len(current.texture):
             frame = 0;
         current.update_args[1].blit(current.texture[frame], current.update_args[0]);
-    Interface.update();       
+    Interface.update();   
+    drop.update();    
     pygame.display.update();
