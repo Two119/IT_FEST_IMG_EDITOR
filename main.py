@@ -2,6 +2,9 @@ import pygame, sys, imghdr
 from tkinter import filedialog
 from pygame.locals import *
 from PIL import Image
+from face_recognition import FaceRecognition
+global fr
+fr = FaceRecognition()
 global current;
 global saving;
 saving = False
@@ -9,6 +12,7 @@ pygame.init()
 class AppObj:
     def __init__(self):
         self.update_args = []
+        self.filepath = '';
     def update(self):
         pass
 class DropDownButton(AppObj):
@@ -195,6 +199,7 @@ class interface(AppObj):
                 if (imghdr.what(to_load) in formats):
                     current.texture = (pygame.image.load(to_load));
                     current.gif = False;
+                current.filepath = to_load+"."+imghdr.what(to_load)
             return
         def save(args):
             if current.gif:
@@ -211,9 +216,9 @@ class interface(AppObj):
         
         def ex(args):
             sys.exit();
-        def split_current(args):
-            if current.gif:
-                pass
+        global fr
+        def identify_face(args):
+            fr.predict(current.filepath)
         self.button_textures = [[pygame.image.load("Assets\\Images\\UI\\load.png")], [pygame.image.load("Assets\\Images\\UI\\save.png")], [pygame.image.load("Assets\\Images\\UI\\split.png")], [pygame.image.load("Assets\\Images\\UI\\exit.png")]];
         for TexList in self.button_textures:
             surf = pygame.Surface((TexList[0].get_width(), TexList[0].get_height()));
@@ -225,7 +230,7 @@ class interface(AppObj):
             new.set_colorkey((128, 206, 128));
             TexList.append(new)
         self.buttons = [];
-        self.button_functions = [load_image, save, split_current, ex];
+        self.button_functions = [load_image, save, identify_face, ex];
         button_num = -1;
         for tex in self.button_textures:
             button_num += 1;
@@ -248,7 +253,7 @@ drop = DropDown("Save as", formats, [150, 50])
 clock = pygame.time.Clock();
 while True:
     win.fill((0, 0, 0));
-    clock.tick(60)
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit();
