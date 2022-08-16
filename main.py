@@ -4,6 +4,8 @@ from pygame.locals import *
 from PIL import Image, ImageDraw
 import face_recognition
 global current;
+global cur_dict;
+cur_dict = {"other.png":"photo.png", "photo.png":"other.png"}
 global saving;
 saving = False
 pygame.init()
@@ -177,19 +179,19 @@ class Popup(AppObj):
         self.popup_surf.blit(background, [0, 0])
 class interface(AppObj):
     def __init__(self):
-        global scale, drop;
-        self.positions = [[10*scale["w"], 50*scale["h"]], [10*scale["w"], 100*scale["h"]], [10*scale["w"], 150*scale["h"]], [10*scale["w"], 200*scale["h"]], [10*scale["w"], 250*scale["h"]], [10*scale["w"], 300*scale["h"]], [10*scale["w"], 350*scale["h"]]];
+        global scale, drop, current, formats, cur_dict;
+        self.positions = [[10*scale["w"], 50*scale["h"]], [10*scale["w"], 100*scale["h"]], [10*scale["w"], 150*scale["h"]], [10*scale["w"], 200*scale["h"]], [10*scale["w"], 250*scale["h"]], [10*scale["w"], 300*scale["h"]], [10*scale["w"], 350*scale["h"]], [10*scale["w"], 400*scale["h"]]];
         self.ButtonLoader();
         self.button_dicts = {};
     def update(self):
-        global current;
+
         for ui in range(len(self.buttons)):
             self.buttons[ui].update();
         current.update();
         pygame.display.update()
         
     def ButtonLoader(self):
-        global formats
+
         def load_image(args):
             to_load = "photo.png"
             if current.filepath != '':
@@ -223,9 +225,9 @@ class interface(AppObj):
         
         def ex(args):
             sys.exit();
-        global app
+
         def identify_face(args):
-            current.comparison_photo = None;
+            
             image = face_recognition.load_image_file(current.filepath)
             face_locations = face_recognition.face_locations(image, 5, "hog")
             for face_location in face_locations:
@@ -233,11 +235,42 @@ class interface(AppObj):
                 pil_image = Image.open(current.filepath)
                 draw = ImageDraw.Draw(pil_image)
                 draw.rectangle(((left, top), (right, bottom)), outline=(0, 255, 0))
-                current.texture = GifProcesser.pil_to_game(pil_image)
+                pil_image.save("output.png")
+                current.texture = pygame.image.load("output.png")
+            if current.comparison_photo != None:
+                image2 = face_recognition.load_image_file(cur_dict[current.filepath])
+                face_locations2 = face_recognition.face_locations(image2, 5, "hog")
+                for face_location2 in face_locations2:
+                    top2, right2, bottom2, left2 = face_location2
+                    pil_image2 = Image.open(cur_dict[current.filepath])
+                    draw2 = ImageDraw.Draw(pil_image2)
+                    draw2.rectangle(((left2, top2), (right2, bottom2)), outline=(0, 255, 0))
+                    pil_image2.save("output.png")
+                    current.comparison_photo = pygame.image.load("output.png")
         def compare(args):
-            cur_dict = {"other.png":"photo.png", "photo.png":"other.png"}
+            
             results = face_recognition.compare_faces([face_recognition.face_encodings(face_recognition.load_image_file("photo.png"))[0]], face_recognition.face_encodings(face_recognition.load_image_file("other.png"))[0])
             if results[0]:                
+                image = face_recognition.load_image_file(current.filepath)
+                face_locations = face_recognition.face_locations(image, 5, "hog")
+                for face_location in face_locations:
+                    top, right, bottom, left = face_location
+                    pil_image = Image.open(current.filepath)
+                    draw = ImageDraw.Draw(pil_image)
+                    draw.rectangle(((left, top), (right, bottom)), outline=(0, 255, 0))
+                    pil_image.save("output.png")
+                    current.texture = pygame.image.load("output.png")
+                image2 = face_recognition.load_image_file(cur_dict[current.filepath])
+                face_locations2 = face_recognition.face_locations(image2, 5, "hog")
+                for face_location2 in face_locations2:
+                    top2, right2, bottom2, left2 = face_location2
+                    pil_image2 = Image.open(cur_dict[current.filepath])
+                    draw2 = ImageDraw.Draw(pil_image2)
+                    draw2.rectangle(((left2, top2), (right2, bottom2)), outline=(0, 255, 0))
+                    current.comparison_photo = GifProcesser.pil_to_game(pil_image2)
+                torender = drop.font.render("It's a match",True,(0, 0, 0), (0, 255, 0))
+                current.texture.blit(torender, [0, 0])
+            else:           
                 image = face_recognition.load_image_file(current.filepath)
                 face_locations = face_recognition.face_locations(image, 5, "hog")
                 for face_location in face_locations:
@@ -252,23 +285,36 @@ class interface(AppObj):
                     top2, right2, bottom2, left2 = face_location2
                     pil_image2 = Image.open(cur_dict[current.filepath])
                     draw2 = ImageDraw.Draw(pil_image2)
-                    draw2.rectangle(((left2, top2), (right2, bottom2)), outline=(0, 255, 0))
-                    current.comparison_photo = GifProcesser.pil_to_game(pil_image2)
-                torender = drop.font.render("It's a match!",True,(0, 0, 0), (255, 255, 255))
-                torender.set_colorkey((255, 255, 255))
+                    draw2.rectangle(((left2, top2), (right2, bottom2)), outline=(255, 0, 0))
+                    pil_image2.save("output.png")
+                    current.comparison_photo = pygame.image.load("output.png")
+                torender = drop.font.render("It's not a match",True,(0, 0, 0), (255, 0, 0))
                 current.texture.blit(torender, [0, 0])
             return results[0]
         def outline_features(args):
-            current.comparison_photo = None;
+
             image = face_recognition.load_image_file(current.filepath)
             face_landmarks_list = face_recognition.face_landmarks(image)
             pil_image = Image.fromarray(image)
             d = ImageDraw.Draw(pil_image)
             for face_landmarks in face_landmarks_list:
                 for facial_feature in face_landmarks.keys():
-                    d.line(face_landmarks[facial_feature], width=5)
+                    d.line(face_landmarks[facial_feature], width=2)
             current.texture = GifProcesser.pil_to_game(pil_image)
-        self.button_textures = [[pygame.image.load("Assets\\Images\\UI\\load.png")], [pygame.image.load("Assets\\Images\\UI\\save.png")], [pygame.image.load("Assets\\Images\\UI\\split.png")], [pygame.image.load("Assets\\Images\\UI\\compare.png")], [pygame.image.load("Assets\\Images\\UI\\loadc.png")],[pygame.image.load("Assets\\Images\\UI\\outline.png")],[pygame.image.load("Assets\\Images\\UI\\exit.png")]];
+            if current.comparison_photo != None:
+                image2 = face_recognition.load_image_file("other.png")
+                face_landmarks_list2 = face_recognition.face_landmarks(image2)
+                pil_image2 = Image.fromarray(image2)
+                d2 = ImageDraw.Draw(pil_image2)
+                for face_landmarks2 in face_landmarks_list2:
+                    for facial_feature2 in face_landmarks2.keys():
+                        d2.line(face_landmarks2[facial_feature2], width=2)
+                current.comparison_photo = GifProcesser.pil_to_game(pil_image2)
+        def reset(args):
+            current.texture = pygame.image.load(current.filepath)
+            if current.comparison_photo != None:
+                current.comparison_photo = pygame.image.load(cur_dict[current.filepath])
+        self.button_textures = [[pygame.image.load("Assets\\Images\\UI\\load.png")], [pygame.image.load("Assets\\Images\\UI\\save.png")], [pygame.image.load("Assets\\Images\\UI\\split.png")], [pygame.image.load("Assets\\Images\\UI\\compare.png")], [pygame.image.load("Assets\\Images\\UI\\loadc.png")],[pygame.image.load("Assets\\Images\\UI\\outline.png")],[pygame.image.load("Assets\\Images\\UI\\reset.png")],[pygame.image.load("Assets\\Images\\UI\\exit.png")]];
         for TexList in self.button_textures:
             surf = pygame.Surface((TexList[0].get_width(), TexList[0].get_height()));
             pygame.draw.rect(surf, [128, 128, 128], TexList[0].get_rect(topleft=(0, 0)));
@@ -279,7 +325,7 @@ class interface(AppObj):
             new.set_colorkey((128, 206, 128));
             TexList.append(new)
         self.buttons = [];
-        self.button_functions = [load_image, save, identify_face, compare, load_compare, outline_features,ex];
+        self.button_functions = [load_image, save, identify_face, compare, load_compare, outline_features, reset, ex];
         button_num = -1;
         for tex in self.button_textures:
             button_num += 1;
@@ -291,8 +337,8 @@ global scale;
 scale = {"w":current_h_w[0]/default_h_w[0], "h":current_h_w[1]/default_h_w[1]};
 global formats;
 formats = ['rgb','pbm','pgm','ppm','tiff','rast','xbm','jpeg','bmp','png','webp','exr'];
-win = pygame.Surface((400*scale["w"], 600*scale["h"]))
-current = CurrentImage(pygame.Surface((10, 10)), [[100, 50], win]);
+win = pygame.Surface((1366*scale["w"], 768*scale["h"]))
+current = CurrentImage(pygame.Surface((10, 10)), [[200, 50], win]);
 Interface = interface();
 delay = 0;
 frame = -1;
@@ -300,9 +346,11 @@ form_init();
 global drop
 drop = DropDown("Save as", formats, [150, 50])
 clock = pygame.time.Clock();
+original_bg = pygame.image.load("background.png")
+bg = pygame.transform.scale(original_bg, (1366*scale["w"], 768*scale["h"]))
 while True:
     win.fill((0, 0, 0));
-    
+    win.blit(bg, (0, 0))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit();
@@ -325,4 +373,3 @@ while True:
     Interface.update();
     pygame.display.set_mode((win.get_width(), win.get_height())).blit(win, (0, 0))
     pygame.display.update();
-    print(drop.selected)
