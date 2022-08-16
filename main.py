@@ -230,23 +230,25 @@ class interface(AppObj):
             
             image = face_recognition.load_image_file(current.filepath)
             face_locations = face_recognition.face_locations(image, 5, "hog")
+            pil_image = Image.open(current.filepath)
             for face_location in face_locations:
                 top, right, bottom, left = face_location
-                pil_image = Image.open(current.filepath)
+                
                 draw = ImageDraw.Draw(pil_image)
                 draw.rectangle(((left, top), (right, bottom)), outline=(0, 255, 0))
-                pil_image.save("output.png")
-                current.texture = pygame.image.load("output.png")
+            pil_image.save("output.png")
+            current.texture = pygame.image.load("output.png")
             if current.comparison_photo != None:
                 image2 = face_recognition.load_image_file(cur_dict[current.filepath])
                 face_locations2 = face_recognition.face_locations(image2, 5, "hog")
+                pil_image2 = Image.open(cur_dict[current.filepath])
                 for face_location2 in face_locations2:
                     top2, right2, bottom2, left2 = face_location2
-                    pil_image2 = Image.open(cur_dict[current.filepath])
+                    
                     draw2 = ImageDraw.Draw(pil_image2)
                     draw2.rectangle(((left2, top2), (right2, bottom2)), outline=(0, 255, 0))
-                    pil_image2.save("output.png")
-                    current.comparison_photo = pygame.image.load("output.png")
+                pil_image2.save("output.png")
+                current.comparison_photo = pygame.image.load("output.png")
         def compare(args):
             
             results = face_recognition.compare_faces([face_recognition.face_encodings(face_recognition.load_image_file("photo.png"))[0]], face_recognition.face_encodings(face_recognition.load_image_file("other.png"))[0])
