@@ -1,10 +1,8 @@
 import pygame, sys, imghdr
 from tkinter import filedialog
 from pygame.locals import *
-from PIL import Image
-from face_recognition import FaceRecognition
-global fr
-fr = FaceRecognition()
+from PIL import Image, ImageDraw
+import face_recognition
 global current;
 global saving;
 saving = False
@@ -216,9 +214,17 @@ class interface(AppObj):
         
         def ex(args):
             sys.exit();
-        global fr
+        global app
         def identify_face(args):
-            fr.predict(current.filepath)
+            image = face_recognition.load_image_file("photo.png")
+            face_locations = face_recognition.face_locations(image, 5, "hog")
+            for face_location in face_locations:
+                top, right, bottom, left = face_location
+     
+                pil_image = Image.open("photo.png")
+                draw = ImageDraw.Draw(pil_image)
+                draw.rectangle(((left, top), (right, bottom)), outline=(0, 255, 0))
+                current.texture = GifProcesser.pil_to_game(pil_image)
         self.button_textures = [[pygame.image.load("Assets\\Images\\UI\\load.png")], [pygame.image.load("Assets\\Images\\UI\\save.png")], [pygame.image.load("Assets\\Images\\UI\\split.png")], [pygame.image.load("Assets\\Images\\UI\\exit.png")]];
         for TexList in self.button_textures:
             surf = pygame.Surface((TexList[0].get_width(), TexList[0].get_height()));
