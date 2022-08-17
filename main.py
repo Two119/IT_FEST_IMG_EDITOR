@@ -180,7 +180,7 @@ class Popup(AppObj):
 class interface(AppObj):
     def __init__(self):
         global scale, drop, current, formats, cur_dict;
-        self.positions = [[10*scale["w"], 50*scale["h"]], [10*scale["w"], 100*scale["h"]], [10*scale["w"], 150*scale["h"]], [10*scale["w"], 200*scale["h"]], [10*scale["w"], 250*scale["h"]], [10*scale["w"], 300*scale["h"]], [10*scale["w"], 350*scale["h"]], [10*scale["w"], 400*scale["h"]]];
+        self.positions = [[10*scale["w"], 50*scale["h"]], [10*scale["w"], 100*scale["h"]], [10*scale["w"], 150*scale["h"]], [10*scale["w"], 200*scale["h"]], [10*scale["w"], 250*scale["h"]], [10*scale["w"], 300*scale["h"]], [10*scale["w"], 350*scale["h"]], [10*scale["w"], 400*scale["h"]], [10*scale["w"], 450*scale["h"]]];
         self.ButtonLoader();
         self.button_dicts = {};
     def update(self):
@@ -211,18 +211,9 @@ class interface(AppObj):
                 current.filepath = to_load
             return
         def save(args):
-            if current.gif:
-                fram = [];
-                num_frame = -1;
-                for tex in current.texture:
-                    num_frame += 1;
-                    current.raw.seek(num_frame)
-                    fram.append(current.raw.convert("RGBA"));
-                GifProcesser.save_images_to_gif(fram, ImageEditor.saveFileDialog()+".gif", current.optimize, current.duration, current.loop, True);
-            else:
-                global saving
-                saving = True;
-        
+            ImageEditor.save_image(current.texture, "saves/1.png")
+            if current.comparison_photo != None:
+                ImageEditor.save_image(current.comparison_photo, "saves/2.png")
         def ex(args):
             sys.exit();
 
@@ -316,7 +307,69 @@ class interface(AppObj):
             current.texture = pygame.image.load(current.filepath)
             if current.comparison_photo != None:
                 current.comparison_photo = pygame.image.load(cur_dict[current.filepath])
-        self.button_textures = [[pygame.image.load("Assets\\Images\\UI\\load.png")], [pygame.image.load("Assets\\Images\\UI\\save.png")], [pygame.image.load("Assets\\Images\\UI\\split.png")], [pygame.image.load("Assets\\Images\\UI\\compare.png")], [pygame.image.load("Assets\\Images\\UI\\loadc.png")],[pygame.image.load("Assets\\Images\\UI\\outline.png")],[pygame.image.load("Assets\\Images\\UI\\reset.png")],[pygame.image.load("Assets\\Images\\UI\\exit.png")]];
+        def add_makeup(args):
+            image = face_recognition.load_image_file(current.filepath)
+
+            # Find all facial features in all the faces in the image
+            face_landmarks_list = face_recognition.face_landmarks(image)
+
+            pil_image = Image.fromarray(image)
+            for face_landmarks in face_landmarks_list:
+                d = ImageDraw.Draw(pil_image, 'RGBA')
+
+                # Make the eyebrows into a nightmare
+                d.polygon(face_landmarks['left_eyebrow'], fill=(68, 54, 39, 128))
+                d.polygon(face_landmarks['right_eyebrow'], fill=(68, 54, 39, 128))
+                d.line(face_landmarks['left_eyebrow'], fill=(68, 54, 39, 150), width=5)
+                d.line(face_landmarks['right_eyebrow'], fill=(68, 54, 39, 150), width=5)
+
+                # Gloss the lips
+                d.polygon(face_landmarks['top_lip'], fill=(150, 0, 0, 128))
+                d.polygon(face_landmarks['bottom_lip'], fill=(150, 0, 0, 128))
+                d.line(face_landmarks['top_lip'], fill=(150, 0, 0, 64), width=8)
+                d.line(face_landmarks['bottom_lip'], fill=(150, 0, 0, 64), width=8)
+
+                # Sparkle the eyes
+                d.polygon(face_landmarks['left_eye'], fill=(255, 255, 255, 30))
+                d.polygon(face_landmarks['right_eye'], fill=(255, 255, 255, 30))
+
+                # Apply some eyeliner
+                d.line(face_landmarks['left_eye'] + [face_landmarks['left_eye'][0]], fill=(0, 0, 0, 110), width=6)
+                d.line(face_landmarks['right_eye'] + [face_landmarks['right_eye'][0]], fill=(0, 0, 0, 110), width=6)
+            pil_image.save("output.png")
+            current.texture = pygame.image.load("output.png")
+            if current.comparison_photo != None:
+                image2 = face_recognition.load_image_file(cur_dict[current.filepath])
+
+                # Find all facial features in all the faces in the image
+                face_landmarks_list2 = face_recognition.face_landmarks(image2)
+
+                pil_image2 = Image.fromarray(image2)
+                for face_landmarks2 in face_landmarks_list2:
+                    d2 = ImageDraw.Draw(pil_image2, 'RGBA')
+
+                    # Make the eyebrows into a nightmare
+                    d2.polygon(face_landmarks2['left_eyebrow'], fill=(68, 54, 39, 128))
+                    d2.polygon(face_landmarks2['right_eyebrow'], fill=(68, 54, 39, 128))
+                    d2.line(face_landmarks2['left_eyebrow'], fill=(68, 54, 39, 150), width=5)
+                    d2.line(face_landmarks2['right_eyebrow'], fill=(68, 54, 39, 150), width=5)
+
+                    # Gloss the lips
+                    d2.polygon(face_landmarks2['top_lip'], fill=(150, 0, 0, 128))
+                    d2.polygon(face_landmarks2['bottom_lip'], fill=(150, 0, 0, 128))
+                    d2.line(face_landmarks2['top_lip'], fill=(150, 0, 0, 64), width=8)
+                    d2.line(face_landmarks2['bottom_lip'], fill=(150, 0, 0, 64), width=8)
+
+                    # Sparkle the eyes
+                    d2.polygon(face_landmarks2['left_eye'], fill=(255, 255, 255, 30))
+                    d2.polygon(face_landmarks2['right_eye'], fill=(255, 255, 255, 30))
+
+                    # Apply some eyeliner
+                    d2.line(face_landmarks2['left_eye'] + [face_landmarks2['left_eye'][0]], fill=(0, 0, 0, 110), width=6)
+                    d2.line(face_landmarks2['right_eye'] + [face_landmarks2['right_eye'][0]], fill=(0, 0, 0, 110), width=6)
+                pil_image2.save("output.png")
+                current.comparison_photo = pygame.image.load("output.png")
+        self.button_textures = [[pygame.image.load("Assets\\Images\\UI\\load.png")], [pygame.image.load("Assets\\Images\\UI\\save.png")], [pygame.image.load("Assets\\Images\\UI\\split.png")], [pygame.image.load("Assets\\Images\\UI\\compare.png")], [pygame.image.load("Assets\\Images\\UI\\loadc.png")],[pygame.image.load("Assets\\Images\\UI\\outline.png")],[pygame.image.load("Assets\\Images\\UI\\makeup.png")],[pygame.image.load("Assets\\Images\\UI\\reset.png")],[pygame.image.load("Assets\\Images\\UI\\exit.png")]];
         for TexList in self.button_textures:
             surf = pygame.Surface((TexList[0].get_width(), TexList[0].get_height()));
             pygame.draw.rect(surf, [128, 128, 128], TexList[0].get_rect(topleft=(0, 0)));
@@ -327,7 +380,7 @@ class interface(AppObj):
             new.set_colorkey((128, 206, 128));
             TexList.append(new)
         self.buttons = [];
-        self.button_functions = [load_image, save, identify_face, compare, load_compare, outline_features, reset, ex];
+        self.button_functions = [load_image, save, identify_face, compare, load_compare, outline_features, add_makeup,reset, ex];
         button_num = -1;
         for tex in self.button_textures:
             button_num += 1;
@@ -356,22 +409,6 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit();
-    if current.gif:
-        if delay == 0:
-            current.duration = current.per_frame*len(current.texture);
-        delay += 1
-        if delay %  current.per_frame == 0:
-            frame += 1;
-        if frame >= len(current.texture):
-            frame = 0;
-        current.update_args[1].blit(current.texture[frame], current.update_args[0]);
-    if saving:
-        drop.update();
-        if drop.selected != None or pygame.key.get_pressed()[K_ESCAPE]:
-            if not pygame.key.get_pressed()[K_ESCAPE]:
-                ImageEditor.save_image(current.texture, ImageEditor.saveFileDialog()+"."+formats[drop.selected]);
-            saving = False;
-            drop.selected = None;
     Interface.update();
     pygame.display.set_mode((win.get_width(), win.get_height())).blit(win, (0, 0))
     pygame.display.update();
