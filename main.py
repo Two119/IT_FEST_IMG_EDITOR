@@ -1,4 +1,5 @@
-import pygame, sys, imghdr
+import numpy as np
+import pygame, sys, cv2, threading
 from tkinter import filedialog
 from pygame.locals import *
 from PIL import Image, ImageDraw
@@ -75,6 +76,7 @@ class CurrentImage(AppObj):
         self.comparison_photo = None;
         self.loop = 0;
         self.raw = None;
+        self.comp_raw = None;
     def update(self):
         if not self.gif:
             self.update_args[1].blit(self.texture, self.update_args[0]);
@@ -180,7 +182,7 @@ class Popup(AppObj):
 class interface(AppObj):
     def __init__(self):
         global scale, drop, current, formats, cur_dict;
-        self.positions = [[10*scale["w"], 50*scale["h"]], [10*scale["w"], 100*scale["h"]], [10*scale["w"], 150*scale["h"]], [10*scale["w"], 200*scale["h"]], [10*scale["w"], 250*scale["h"]], [10*scale["w"], 300*scale["h"]], [10*scale["w"], 350*scale["h"]], [10*scale["w"], 400*scale["h"]], [10*scale["w"], 450*scale["h"]]];
+        self.positions = [[10*scale["w"], 50*scale["h"]], [10*scale["w"], 100*scale["h"]], [10*scale["w"], 150*scale["h"]], [10*scale["w"], 200*scale["h"]], [10*scale["w"], 250*scale["h"]], [10*scale["w"], 300*scale["h"]], [10*scale["w"], 350*scale["h"]], [10*scale["w"], 400*scale["h"]], [10*scale["w"], 450*scale["h"]],[10*scale["w"], 500*scale["h"]]];
         self.ButtonLoader();
         self.button_dicts = {};
     def update(self):
@@ -219,7 +221,7 @@ class interface(AppObj):
 
         def identify_face(args):
             
-            image = face_recognition.load_image_file(current.filepath)
+            image = np.array((current.raw).convert('RGB'))
             face_locations = face_recognition.face_locations(image, 5, "hog")
             pil_image = Image.open(current.filepath)
             for face_location in face_locations:
@@ -230,7 +232,7 @@ class interface(AppObj):
             pil_image.save("output.png")
             current.texture = pygame.image.load("output.png")
             if current.comparison_photo != None:
-                image2 = face_recognition.load_image_file(cur_dict[current.filepath])
+                image2 = face_recognition.load_image_file("other.png")
                 face_locations2 = face_recognition.face_locations(image2, 5, "hog")
                 pil_image2 = Image.open(cur_dict[current.filepath])
                 for face_location2 in face_locations2:
@@ -242,9 +244,9 @@ class interface(AppObj):
                 current.comparison_photo = pygame.image.load("output.png")
         def compare(args):
             
-            results = face_recognition.compare_faces([face_recognition.face_encodings(face_recognition.load_image_file("photo.png"))[0]], face_recognition.face_encodings(face_recognition.load_image_file("other.png"))[0])
+            results = face_recognition.compare_faces([face_recognition.face_encodings(current.raw)[0]], face_recognition.face_encodings(face_recognition.load_image_file("other.png"))[0])
             if results[0]:                
-                image = face_recognition.load_image_file(current.filepath)
+                image = np.array((current.raw).convert('RGB'))
                 face_locations = face_recognition.face_locations(image, 5, "hog")
                 for face_location in face_locations:
                     top, right, bottom, left = face_location
@@ -264,7 +266,7 @@ class interface(AppObj):
                 torender = drop.font.render("It's a match",True,(0, 0, 0), (0, 255, 0))
                 current.texture.blit(torender, [0, 0])
             else:           
-                image = face_recognition.load_image_file(current.filepath)
+                image = np.array((current.raw).convert('RGB'))
                 face_locations = face_recognition.face_locations(image, 5, "hog")
                 for face_location in face_locations:
                     top, right, bottom, left = face_location
@@ -286,7 +288,7 @@ class interface(AppObj):
             return results[0]
         def outline_features(args):
 
-            image = face_recognition.load_image_file(current.filepath)
+            image = np.array((current.raw).convert('RGB'))
             face_landmarks_list = face_recognition.face_landmarks(image)
             pil_image = Image.fromarray(image)
             d = ImageDraw.Draw(pil_image)
@@ -308,7 +310,7 @@ class interface(AppObj):
             if current.comparison_photo != None:
                 current.comparison_photo = pygame.image.load(cur_dict[current.filepath])
         def add_makeup(args):
-            image = face_recognition.load_image_file(current.filepath)
+            image = np.array((current.raw).convert('RGB'))
 
             # Find all facial features in all the faces in the image
             face_landmarks_list = face_recognition.face_landmarks(image)
@@ -339,7 +341,7 @@ class interface(AppObj):
             pil_image.save("output.png")
             current.texture = pygame.image.load("output.png")
             if current.comparison_photo != None:
-                image2 = face_recognition.load_image_file(cur_dict[current.filepath])
+                image2 = face_recognition.load_image_file("other.png")
 
                 # Find all facial features in all the faces in the image
                 face_landmarks_list2 = face_recognition.face_landmarks(image2)
@@ -369,7 +371,25 @@ class interface(AppObj):
                     d2.line(face_landmarks2['right_eye'] + [face_landmarks2['right_eye'][0]], fill=(0, 0, 0, 110), width=6)
                 pil_image2.save("output.png")
                 current.comparison_photo = pygame.image.load("output.png")
-        self.button_textures = [[pygame.image.load("Assets\\Images\\UI\\load.png")], [pygame.image.load("Assets\\Images\\UI\\save.png")], [pygame.image.load("Assets\\Images\\UI\\split.png")], [pygame.image.load("Assets\\Images\\UI\\compare.png")], [pygame.image.load("Assets\\Images\\UI\\loadc.png")],[pygame.image.load("Assets\\Images\\UI\\outline.png")],[pygame.image.load("Assets\\Images\\UI\\makeup.png")],[pygame.image.load("Assets\\Images\\UI\\reset.png")],[pygame.image.load("Assets\\Images\\UI\\exit.png")]];
+        def capture(args):
+            camera = cv2.VideoCapture(0)
+            def thr():
+                while True:
+                    current.comparison_photo = None
+                    if pygame.mouse.get_pressed()[2]:
+                        break
+                    ret, frame = camera.read()
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    pil_img = Image.fromarray(frame)
+                    current.texture = GifProcesser.pil_to_game(pil_img)
+                    current.raw = pil_img
+                pil_img.save("photo.png")
+                current.filepath = "photo.png"
+                return
+            t = threading.Thread(target=thr)
+            t.start()
+            return
+        self.button_textures = [[pygame.image.load("Assets\\Images\\UI\\load.png")], [pygame.image.load("Assets\\Images\\UI\\save.png")], [pygame.image.load("Assets\\Images\\UI\\split.png")], [pygame.image.load("Assets\\Images\\UI\\compare.png")], [pygame.image.load("Assets\\Images\\UI\\loadc.png")],[pygame.image.load("Assets\\Images\\UI\\outline.png")],[pygame.image.load("Assets\\Images\\UI\\makeup.png")],[pygame.image.load("Assets\\Images\\UI\\reset.png")],[pygame.image.load("Assets\\Images\\UI\\camera.png")],[pygame.image.load("Assets\\Images\\UI\\exit.png")]];
         for TexList in self.button_textures:
             surf = pygame.Surface((TexList[0].get_width(), TexList[0].get_height()));
             pygame.draw.rect(surf, [128, 128, 128], TexList[0].get_rect(topleft=(0, 0)));
@@ -380,7 +400,7 @@ class interface(AppObj):
             new.set_colorkey((128, 206, 128));
             TexList.append(new)
         self.buttons = [];
-        self.button_functions = [load_image, save, identify_face, compare, load_compare, outline_features, add_makeup,reset, ex];
+        self.button_functions = [load_image, save, identify_face, compare, load_compare, outline_features, add_makeup,reset, capture,ex];
         button_num = -1;
         for tex in self.button_textures:
             button_num += 1;
