@@ -1,5 +1,5 @@
 import numpy as np
-import pygame, cv2, threading
+import pygame, cv2, threading, random
 from tkinter import filedialog
 from pygame.locals import *
 from PIL import Image, ImageDraw
@@ -321,16 +321,16 @@ class interface(AppObj):
                 d = ImageDraw.Draw(pil_image, 'RGBA')
 
                 # Make the eyebrows into a nightmare
-                d.polygon(face_landmarks['left_eyebrow'], fill=(68, 54, 39, 128))
-                d.polygon(face_landmarks['right_eyebrow'], fill=(68, 54, 39, 128))
-                d.line(face_landmarks['left_eyebrow'], fill=(68, 54, 39, 150), width=5)
-                d.line(face_landmarks['right_eyebrow'], fill=(68, 54, 39, 150), width=5)
+                d.polygon(face_landmarks['left_eyebrow'], fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 128))
+                d.polygon(face_landmarks['right_eyebrow'], fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 128))
+                d.line(face_landmarks['left_eyebrow'], fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 150), width=5)
+                d.line(face_landmarks['right_eyebrow'], fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 150), width=5)
 
                 # Gloss the lips
-                d.polygon(face_landmarks['top_lip'], fill=(150, 0, 0, 128))
-                d.polygon(face_landmarks['bottom_lip'], fill=(150, 0, 0, 128))
-                d.line(face_landmarks['top_lip'], fill=(150, 0, 0, 64), width=8)
-                d.line(face_landmarks['bottom_lip'], fill=(150, 0, 0, 64), width=8)
+                d.polygon(face_landmarks['top_lip'], fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 128))
+                d.polygon(face_landmarks['bottom_lip'], fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 128))
+                d.line(face_landmarks['top_lip'], fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 64), width=8)
+                d.line(face_landmarks['bottom_lip'], fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 64), width=8)
 
                 # Sparkle the eyes
                 d.polygon(face_landmarks['left_eye'], fill=(255, 255, 255, 30))
@@ -352,16 +352,16 @@ class interface(AppObj):
                     d2 = ImageDraw.Draw(pil_image2, 'RGBA')
 
                     # Make the eyebrows into a nightmare
-                    d2.polygon(face_landmarks2['left_eyebrow'], fill=(68, 54, 39, 128))
-                    d2.polygon(face_landmarks2['right_eyebrow'], fill=(68, 54, 39, 128))
-                    d2.line(face_landmarks2['left_eyebrow'], fill=(68, 54, 39, 150), width=5)
-                    d2.line(face_landmarks2['right_eyebrow'], fill=(68, 54, 39, 150), width=5)
+                    d2.polygon(face_landmarks2['left_eyebrow'], fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 128))
+                    d2.polygon(face_landmarks2['right_eyebrow'], fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 128))
+                    d2.line(face_landmarks2['left_eyebrow'], fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 150), width=5)
+                    d2.line(face_landmarks2['right_eyebrow'], fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 150), width=5)
 
                     # Gloss the lips
-                    d2.polygon(face_landmarks2['top_lip'], fill=(150, 0, 0, 128))
-                    d2.polygon(face_landmarks2['bottom_lip'], fill=(150, 0, 0, 128))
-                    d2.line(face_landmarks2['top_lip'], fill=(150, 0, 0, 64), width=8)
-                    d2.line(face_landmarks2['bottom_lip'], fill=(150, 0, 0, 64), width=8)
+                    d2.polygon(face_landmarks2['top_lip'], fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 128))
+                    d2.polygon(face_landmarks2['bottom_lip'], fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 128))
+                    d2.line(face_landmarks2['top_lip'], fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 64), width=8)
+                    d2.line(face_landmarks2['bottom_lip'], fill=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 64), width=8)
 
                     # Sparkle the eyes
                     d2.polygon(face_landmarks2['left_eye'], fill=(255, 255, 255, 30))
