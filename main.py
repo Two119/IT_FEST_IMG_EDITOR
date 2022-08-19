@@ -1,5 +1,5 @@
 import numpy as np
-import pygame, sys, cv2, threading
+import pygame, cv2, threading
 from tkinter import filedialog
 from pygame.locals import *
 from PIL import Image, ImageDraw
@@ -171,7 +171,7 @@ class Button(AppObj):
             if pygame.mouse.get_pressed()[0]:
                 if not self.delaying:
                     self.onlick(self.args);
-                self.delaying = True;
+                
             self.current = 1;
         self.screen.blit(self.textures[self.current], self.pos);
         self.rect = self.textures[self.current].get_rect(topleft=self.pos);
@@ -219,8 +219,7 @@ class interface(AppObj):
             if current.comparison_photo != None:
                 ImageEditor.save_image(current.comparison_photo, "saves/2.png")
         def ex(args):
-            sys.exit();
-
+            raise SystemExit
         def identify_face(args):
             
             image = np.array((current.raw).convert('RGB'))
@@ -430,7 +429,7 @@ while True:
     win.blit(bg, (0, 0))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            sys.exit();
+            raise SystemExit
     Interface.update();
     pygame.display.set_mode((win.get_width(), win.get_height())).blit(win, (0, 0))
     pygame.display.update();
