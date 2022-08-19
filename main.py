@@ -199,9 +199,11 @@ class interface(AppObj):
             if current.filepath != '':
                 current.comparison_photo = (pygame.image.load(to_load));
                 current.gif = False;
+                current.raw = Image.open(to_load);
             else:
                 current.texture = pygame.image.load("photo.png")
                 current.filepath = to_load
+                current.raw = Image.open("photo.png")
             return
         def load_compare(args):
             to_load = "other.png"
@@ -222,7 +224,7 @@ class interface(AppObj):
         def identify_face(args):
             
             image = np.array((current.raw).convert('RGB'))
-            face_locations = face_recognition.face_locations(image, 5, "hog")
+            face_locations = face_recognition.face_locations(image, 2, "hog")
             pil_image = Image.open(current.filepath)
             for face_location in face_locations:
                 top, right, bottom, left = face_location
@@ -233,7 +235,7 @@ class interface(AppObj):
             current.texture = pygame.image.load("output.png")
             if current.comparison_photo != None:
                 image2 = face_recognition.load_image_file("other.png")
-                face_locations2 = face_recognition.face_locations(image2, 5, "hog")
+                face_locations2 = face_recognition.face_locations(image2, 2, "hog")
                 pil_image2 = Image.open(cur_dict[current.filepath])
                 for face_location2 in face_locations2:
                     top2, right2, bottom2, left2 = face_location2
@@ -244,10 +246,10 @@ class interface(AppObj):
                 current.comparison_photo = pygame.image.load("output.png")
         def compare(args):
             
-            results = face_recognition.compare_faces([face_recognition.face_encodings(current.raw)[0]], face_recognition.face_encodings(face_recognition.load_image_file("other.png"))[0])
+            results = face_recognition.compare_faces([face_recognition.face_encodings(np.array((current.raw).convert('RGB')))[0]], face_recognition.face_encodings(face_recognition.load_image_file("other.png"))[0])
             if results[0]:                
                 image = np.array((current.raw).convert('RGB'))
-                face_locations = face_recognition.face_locations(image, 5, "hog")
+                face_locations = face_recognition.face_locations(image, 2, "hog")
                 for face_location in face_locations:
                     top, right, bottom, left = face_location
                     pil_image = Image.open(current.filepath)
@@ -256,7 +258,7 @@ class interface(AppObj):
                     pil_image.save("output.png")
                     current.texture = pygame.image.load("output.png")
                 image2 = face_recognition.load_image_file(cur_dict[current.filepath])
-                face_locations2 = face_recognition.face_locations(image2, 5, "hog")
+                face_locations2 = face_recognition.face_locations(image2, 2, "hog")
                 for face_location2 in face_locations2:
                     top2, right2, bottom2, left2 = face_location2
                     pil_image2 = Image.open(cur_dict[current.filepath])
@@ -267,7 +269,7 @@ class interface(AppObj):
                 current.texture.blit(torender, [0, 0])
             else:           
                 image = np.array((current.raw).convert('RGB'))
-                face_locations = face_recognition.face_locations(image, 5, "hog")
+                face_locations = face_recognition.face_locations(image, 2, "hog")
                 for face_location in face_locations:
                     top, right, bottom, left = face_location
                     pil_image = Image.open(current.filepath)
@@ -275,7 +277,7 @@ class interface(AppObj):
                     draw.rectangle(((left, top), (right, bottom)), outline=(0, 255, 0))
                     current.texture = GifProcesser.pil_to_game(pil_image)
                 image2 = face_recognition.load_image_file(cur_dict[current.filepath])
-                face_locations2 = face_recognition.face_locations(image2, 5, "hog")
+                face_locations2 = face_recognition.face_locations(image2, 2, "hog")
                 for face_location2 in face_locations2:
                     top2, right2, bottom2, left2 = face_location2
                     pil_image2 = Image.open(cur_dict[current.filepath])
