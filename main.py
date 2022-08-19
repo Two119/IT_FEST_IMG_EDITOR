@@ -175,10 +175,6 @@ class Button(AppObj):
             self.current = 1;
         self.screen.blit(self.textures[self.current], self.pos);
         self.rect = self.textures[self.current].get_rect(topleft=self.pos);
-class Popup(AppObj):
-    def __init__(self, title, text, dimensions, position, background):
-        self.popup_surf = pygame.Surface(dimensions)
-        self.popup_surf.blit(background, [0, 0])
 class interface(AppObj):
     def __init__(self):
         global scale, drop, current, formats, cur_dict;
