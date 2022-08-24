@@ -1,6 +1,5 @@
 import numpy as np
 import pygame, cv2, threading, random
-from tkinter import filedialog
 from pygame.locals import *
 from PIL import Image, ImageDraw
 import face_recognition
@@ -9,6 +8,8 @@ global cur_dict;
 cur_dict = {"other.png":"photo.png", "photo.png":"other.png"}
 global saving;
 saving = False
+global camera
+camera = cv2.VideoCapture(0)
 pygame.init()
 class AppObj:
     def __init__(self):
@@ -97,13 +98,7 @@ class ImageEditor:
     def save_image(img, filename):
         pygame.image.save(img, filename);
         return;
-    global forms
-    def openFileDialog():
-        filepath = filedialog.askopenfilename(initialdir="C:\\",title="Open file", filetypes = forms)
-        return filepath
-    def saveFileDialog():
-        filepath = filedialog.asksaveasfilename(initialdir="C:\\",title="Save as", filetypes = forms)
-        return filepath
+    
 class GIF(AppObj):
     def __init__(self, frames, raw):
         self.frames = frames;
@@ -177,7 +172,7 @@ class Button(AppObj):
         self.rect = self.textures[self.current].get_rect(topleft=self.pos);
 class interface(AppObj):
     def __init__(self):
-        global scale, drop, current, formats, cur_dict;
+        global scale, drop, current, formats, cur_dict, camera
         self.positions = [[10*scale["w"], 50*scale["h"]], [10*scale["w"], 100*scale["h"]], [10*scale["w"], 150*scale["h"]], [10*scale["w"], 200*scale["h"]], [10*scale["w"], 250*scale["h"]], [10*scale["w"], 300*scale["h"]], [10*scale["w"], 350*scale["h"]], [10*scale["w"], 400*scale["h"]], [10*scale["w"], 450*scale["h"]],[10*scale["w"], 500*scale["h"]]];
         self.ButtonLoader();
         self.button_dicts = {};
@@ -259,7 +254,8 @@ class interface(AppObj):
                     pil_image2 = Image.open(cur_dict[current.filepath])
                     draw2 = ImageDraw.Draw(pil_image2)
                     draw2.rectangle(((left2, top2), (right2, bottom2)), outline=(0, 255, 0))
-                    current.comparison_photo = GifProcesser.pil_to_game(pil_image2)
+                    pil_image2.save("output.png")
+                    current.comparison_photo = pygame.image.load("output.png")
                 torender = drop.font.render("It's a match",True,(0, 0, 0), (0, 255, 0))
                 current.texture.blit(torender, [0, 0])
             else:           
@@ -270,7 +266,8 @@ class interface(AppObj):
                     pil_image = Image.open(current.filepath)
                     draw = ImageDraw.Draw(pil_image)
                     draw.rectangle(((left, top), (right, bottom)), outline=(0, 255, 0))
-                    current.texture = GifProcesser.pil_to_game(pil_image)
+                    pil_image.save("output.png")
+                    current.texture = pygame.image.load("output.png")
                 image2 = face_recognition.load_image_file(cur_dict[current.filepath])
                 face_locations2 = face_recognition.face_locations(image2, 2, "hog")
                 for face_location2 in face_locations2:
@@ -292,7 +289,8 @@ class interface(AppObj):
             for face_landmarks in face_landmarks_list:
                 for facial_feature in face_landmarks.keys():
                     d.line(face_landmarks[facial_feature], width=2)
-            current.texture = GifProcesser.pil_to_game(pil_image)
+            pil_image.save("output.png")
+            current.texture = pygame.image.load("output.png")
             if current.comparison_photo != None:
                 image2 = face_recognition.load_image_file("other.png")
                 face_landmarks_list2 = face_recognition.face_landmarks(image2)
@@ -301,7 +299,8 @@ class interface(AppObj):
                 for face_landmarks2 in face_landmarks_list2:
                     for facial_feature2 in face_landmarks2.keys():
                         d2.line(face_landmarks2[facial_feature2], width=2)
-                current.comparison_photo = GifProcesser.pil_to_game(pil_image2)
+                pil_image2.save("output.png")
+                current.comparison_photo = pygame.image.load("output.png")
         def reset(args):
             current.texture = pygame.image.load(current.filepath)
             if current.comparison_photo != None:
@@ -369,7 +368,6 @@ class interface(AppObj):
                 pil_image2.save("output.png")
                 current.comparison_photo = pygame.image.load("output.png")
         def capture(args):
-            camera = cv2.VideoCapture(0)
             def thr():
                 while True:
                     current.comparison_photo = None
