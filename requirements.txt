@@ -1,0 +1,3 @@
+pygame
+face-recognition
+pillow
